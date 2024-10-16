@@ -1,10 +1,10 @@
 Commands
 
-Initialize database
+Initialize database\
 `flask db init`
 
-Create migration
+Create migration\
 `flask db migrate`
 
-Run migration
+Run migration\
 `flask db upgrade`

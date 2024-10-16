@@ -10,9 +10,12 @@ class User(db.Model, UserMixin):
     password = db.Column(db.Text(), nullable=False)
     role = db.Column(db.Text(), nullable=False, default='user')
 
-    def __init__(self, username, password) -> None:
+    meals = db.relationship('Meal', back_populates='user', lazy=True)
+
+    def __init__(self, username, password, role) -> None:
         self.username = username
         self.password = password
+        self.role = role
 
     def __repr__(self):
         return f"<User {self.username}>"
