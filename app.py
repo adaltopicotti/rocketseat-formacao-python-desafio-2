@@ -1,5 +1,5 @@
 import binascii
-from datetime import datetime
+
 import os
 import sys
 import bcrypt
@@ -92,16 +92,16 @@ def create_meal():
     data = request.json
     name = data.get("name", None)
     description = data.get("description", None)
+    datetime = data.get("datetime", None)
     in_diet = data.get("in_diet", None)
 
     if name and description and in_diet is not None:
 
-        current_time = datetime.now()
         print(current_user)
         meal = Meal(name=name,
                     description=description,
                     in_diet=in_diet,
-                    datetime=current_time,
+                    datetime=datetime,
                     user_id=current_user.id
                     )
         db.session.add(meal)
@@ -114,10 +114,61 @@ def create_meal():
 @app.route('/meal', methods=['GET'])
 def get_meals():
 
-    meals = Meal.query.all()
-    meal_list = [meal.to_dict() for meal in meals]
+    meals = Meal.query.filter_by(user_id=current_user.id).all()
+    if len(meals) > 0:
+        meal_list = [meal.to_dict() for meal in meals]
+        return jsonify(meal_list)
 
-    return jsonify(meal_list)
+    return jsonify({"message": "Não foram encontradas refeições para este usuário"}), 400
+
+
+@app.route('/meal/<int:id_meal>', methods=['GET'])
+def get_meal(id_meal):
+
+    meal = Meal.query.get(id_meal)
+
+    if meal:
+        return jsonify(meal.to_dict())
+
+    return jsonify({"message": "Refeição não encontrada"}), 404
+
+
+@app.route('/meal/<int:id_meal>', methods=['PUT'])
+def update_meal(id_meal):
+    data = request.json
+    print(id_meal)
+    meal = Meal.query.get(id_meal)
+    print(meal)
+    if meal:
+        if meal.user_id != current_user.id:
+            return jsonify({"message": "Operação não permitida"}), 403
+
+        meal.name = data.get("name", meal.name)
+        meal.description = data.get("description", meal.description)
+        meal.datetime = data.get("datetime", meal.datetime)
+        meal.in_diet = data.get("in_diet", meal.in_diet)
+        db.session.add(meal)
+        db.session.commit()
+        return jsonify(meal.to_dict())
+
+    return jsonify({"message": "Refeição não encontrada"}), 404
+
+
+@app.route('/meal/<int:id_meal>', methods=['DELETE'])
+def delete_meal(id_meal):
+
+    meal = Meal.query.get(id_meal)
+
+    if meal:
+        if meal.user_id != current_user.id:
+            return jsonify({"message": "Operação não permitida"}), 403
+
+        db.session.delete(meal)
+        db.session.commit()
+
+        return {"message": f"Refeição {id_meal} excluída com sucesso"}
+
+    return jsonify({"message": "Refeição não encontrada"}), 404
 
 
 if __name__ == '__main__':

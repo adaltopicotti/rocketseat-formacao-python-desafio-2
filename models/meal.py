@@ -29,8 +29,7 @@ class Meal(db.Model):
             'name': self.name,
             'description': self.description,
             'datetime': self.datetime.isoformat(),
-            'in_diet': self.in_diet,
-            'user_id': self.user_id,
+            'in_diet': self.in_diet
         }
 
     def __repr__(self):
